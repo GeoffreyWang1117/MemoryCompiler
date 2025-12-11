@@ -1,0 +1,91 @@
+# MemoryCompiler Default Configuration
+# This file defines the default settings for the compression pipeline
+
+# Model settings for LLM-based extraction
+model:
+  name: "Qwen/Qwen2.5-7B-Instruct"
+  device: "auto"  # auto, cuda, cpu
+  dtype: "float16"  # float16, bfloat16, float32
+  max_length: 4096
+
+# Embedding model for semantic similarity
+embedding:
+  model: "sentence-transformers/all-MiniLM-L6-v2"
+  cache_enabled: true
+  cache_dir: ".cache/embeddings"
+  batch_size: 32
+
+# Compression settings
+compression:
+  token_budget: 2048
+  output_format: "structured"  # structured, narrative, bullets, json
+
+# Extraction settings
+extraction:
+  batch_size: 10
+  use_mock: false  # Set to true for testing without GPU
+  confidence_threshold: 0.5
+
+# Optimization passes configuration
+passes:
+  dead_memory:
+    enabled: true
+    recency_threshold: 10
+    min_entity_mentions: 1
+    min_fact_confidence: 0.5
+    remove_superseded: true
+
+  fact_folding:
+    enabled: true
+    similarity_threshold: 0.85
+    use_embeddings: true
+    fold_entailed: true
+    merge_strategy: "keep_highest_confidence"  # keep_first, keep_highest_confidence, combine
+
+  temporal_compression:
+    enabled: true
+    min_sequence_length: 3
+    max_turn_gap: 5
+    similarity_threshold: 0.5
+    use_llm_summarization: false
+
+  importance_pruning:
+    enabled: true
+    min_importance: 0.1
+    recency_weight: 0.3
+    frequency_weight: 0.3
+    centrality_weight: 0.2
+    type_weight: 0.2
+    use_knapsack: true
+
+# Generation settings
+generation:
+  include_entities: true
+  include_facts: true
+  include_events: true
+  group_by_entity: true
+  temporal_ordering: true
+  max_entities_per_type: 10
+  max_facts_per_subject: 5
+  max_events: 15
+
+# Evaluation settings
+evaluation:
+  compute_fact_recall: true
+  compute_entity_recall: true
+  compute_qa_accuracy: true
+  compute_semantic_similarity: true
+  similarity_threshold: 0.8
+
+# Logging settings
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  file: null  # Optional log file path
+  format: "{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
+
+# Cache settings
+cache:
+  enabled: true
+  directory: ".cache/memory_compiler"
+  ttl: 3600  # Cache TTL in seconds
+  max_size: 1000  # Maximum cache entries

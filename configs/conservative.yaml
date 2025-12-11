@@ -1,0 +1,67 @@
+# Conservative Compression Configuration
+# Preserves more information with larger token budgets
+
+model:
+  name: "Qwen/Qwen2.5-7B-Instruct"
+  device: "auto"
+  dtype: "float16"
+  max_length: 8192
+
+embedding:
+  model: "sentence-transformers/all-mpnet-base-v2"  # Better quality embeddings
+  cache_enabled: true
+  cache_dir: ".cache/embeddings"
+  batch_size: 16
+
+compression:
+  token_budget: 4096
+  output_format: "structured"
+
+extraction:
+  batch_size: 5  # More careful extraction
+  use_mock: false
+  confidence_threshold: 0.3  # Lower threshold to capture more
+
+passes:
+  dead_memory:
+    enabled: true
+    recency_threshold: 20  # Longer memory window
+    min_entity_mentions: 1
+    min_fact_confidence: 0.3
+    remove_superseded: true
+
+  fact_folding:
+    enabled: true
+    similarity_threshold: 0.9  # Only merge very similar facts
+    use_embeddings: true
+    fold_entailed: true
+    merge_strategy: "combine"
+
+  temporal_compression:
+    enabled: false  # Preserve event details
+    min_sequence_length: 5
+    max_turn_gap: 5
+    similarity_threshold: 0.6
+    use_llm_summarization: false
+
+  importance_pruning:
+    enabled: true
+    min_importance: 0.05  # Keep more items
+    recency_weight: 0.25
+    frequency_weight: 0.35
+    centrality_weight: 0.25
+    type_weight: 0.15
+    use_knapsack: true
+
+generation:
+  include_entities: true
+  include_facts: true
+  include_events: true
+  group_by_entity: true
+  temporal_ordering: true
+  max_entities_per_type: 15
+  max_facts_per_subject: 10
+  max_events: 25
+
+logging:
+  level: "INFO"

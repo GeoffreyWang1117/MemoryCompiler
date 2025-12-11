@@ -1,0 +1,67 @@
+# Aggressive Compression Configuration
+# Optimized for maximum compression with tight token budgets
+
+model:
+  name: "Qwen/Qwen2.5-7B-Instruct"
+  device: "auto"
+  dtype: "float16"
+  max_length: 4096
+
+embedding:
+  model: "sentence-transformers/all-MiniLM-L6-v2"
+  cache_enabled: true
+  cache_dir: ".cache/embeddings"
+  batch_size: 32
+
+compression:
+  token_budget: 1024
+  output_format: "bullets"
+
+extraction:
+  batch_size: 10
+  use_mock: false
+  confidence_threshold: 0.6
+
+passes:
+  dead_memory:
+    enabled: true
+    recency_threshold: 5  # More aggressive - shorter window
+    min_entity_mentions: 2  # Require more mentions
+    min_fact_confidence: 0.6  # Higher threshold
+    remove_superseded: true
+
+  fact_folding:
+    enabled: true
+    similarity_threshold: 0.75  # More aggressive merging
+    use_embeddings: true
+    fold_entailed: true
+    merge_strategy: "keep_highest_confidence"
+
+  temporal_compression:
+    enabled: true
+    min_sequence_length: 2  # Compress shorter sequences
+    max_turn_gap: 3
+    similarity_threshold: 0.4
+    use_llm_summarization: false
+
+  importance_pruning:
+    enabled: true
+    min_importance: 0.2  # Higher bar for keeping items
+    recency_weight: 0.35
+    frequency_weight: 0.25
+    centrality_weight: 0.2
+    type_weight: 0.2
+    use_knapsack: true
+
+generation:
+  include_entities: true
+  include_facts: true
+  include_events: true
+  group_by_entity: false  # Flat list is more compact
+  temporal_ordering: true
+  max_entities_per_type: 5
+  max_facts_per_subject: 3
+  max_events: 10
+
+logging:
+  level: "WARNING"
